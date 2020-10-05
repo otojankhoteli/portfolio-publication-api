@@ -1,0 +1,13 @@
+version: "3"
+
+
+services:
+  db:
+    container_name: portfolio-db
+    image: postgres
+    env_file:
+      - .docker-compose.env
+    volumes:
+    - ~/portfolio-service:/var/lib/postgresql/data
+    ports:
+      - 5432:5432

@@ -9,7 +9,14 @@
     "build": "rm -r dist; tsc"
   },
   "dependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "@types/dotenv": "^8.2.0",
+    "@types/express-session": "^1.17.0",
+    "bcrypt": "^5.0.0",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "joi": "^17.2.1",
     "pg": "^8.4.0",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.28",

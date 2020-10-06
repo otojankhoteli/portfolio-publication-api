@@ -1,8 +1,12 @@
 import 'reflect-metadata';
+require('dotenv').config();
 import express from 'express';
+import session from 'express-session';
 import {createConnection} from 'typeorm';
 import {dbConfig} from '../ormconfig';
-import logger from './util/logger';
+import logger from './util/Logger';
+import authRouter from './api/auth';
+import errorHandler from './util/ErrorHandler';
 
 const startApp = async () => {
   try {
@@ -12,9 +16,22 @@ const startApp = async () => {
     const app = express();
     app.use(express.json());
     app.use(express.urlencoded({extended: true}));
+    app.use(session({
+      resave: true,
+      saveUninitialized: true,
+      rolling: true,
+      secret: 'keyboard cat',
+      cookie: {
+        expires: new Date(Date.now() + 1000 * 60 * 5), // millisecond, second, minute
+      },
+    }));
+
     app.get('/ping', (req, res, _) => {
       res.send('pong');
     });
+    app.use('/auth', authRouter);
+
+    app.use(errorHandler);
 
     const port = process.env.PORT || 3000;
     app.listen(port, () => {

@@ -6,7 +6,7 @@ services:
     container_name: portfolio-db
     image: postgres
     env_file:
-      - .docker-compose.env
+      - .env
     volumes:
     - ~/portfolio-service:/var/lib/postgresql/data
     ports:

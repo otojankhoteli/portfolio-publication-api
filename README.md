@@ -7,3 +7,4 @@
 - DB_USER || admin
 - DB_PASSWORD
 - DB_DATABASE || admin
+- LOG_LEVEL || silly

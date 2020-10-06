@@ -10,8 +10,8 @@ export const dbConfig: ConnectionOptions = {
   database: process.env.DB_DATABASE || 'admin',
   schema: 'public',
   type: 'postgres',
-  synchronize: false,
-  logging: false,
+  synchronize: true,
+  logging: true,
   migrations: [
     'src/migration/**/*.ts',
   ],

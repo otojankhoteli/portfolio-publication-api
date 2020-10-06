@@ -1,22 +1,35 @@
-import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
+import {Portfolio} from './Portfolio';
 
-@Entity('User')
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({unique: true})
   username: string;
 
   @Column()
   password: string;
 
+  @Column({unique: true})
+  mail: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  surname: string
+
   @Column({name: 'img_url', nullable: true})
   imgUrl: string;
 
-  @Column({name: 'create_date'})
+  @Column({name: 'create_date', default: () => 'current_timestamp'})
   createDate: Date;
 
-  @Column({name: 'update_date'})
+  @Column({name: 'update_date', default: () => 'current_timestamp'})
   updateDate: Date;
+
+  @OneToMany(() => Portfolio, (portfolio) => portfolio.user)
+  portfolios: Portfolio[];
 }

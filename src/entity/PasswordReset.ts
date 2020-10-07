@@ -1,4 +1,4 @@
-import {Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, Index, JoinColumn, OneToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {User} from './User';
 
 @Entity('password_reset')
@@ -6,13 +6,18 @@ export class PasswordReset {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User)
-  @JoinColumn({name: 'username', referencedColumnName: 'username'})
-  username: User;
+  @Index()
+  @Column()
+  mail: string;
 
+  @OneToOne(() => User)
+  @JoinColumn({name: 'mail', referencedColumnName: 'mail'})
+  mailValue: User;
+
+  @Index()
   @Column()
   resetToken: string;
 
-  @Column({name: 'create_date', default: () => 'current_timestamp'})
-  createDate: Date;
+  @Column({name: 'expire_date'})
+  expireDate: Date;
 }

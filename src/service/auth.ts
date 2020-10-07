@@ -2,6 +2,8 @@ import {getRepository} from 'typeorm';
 import {User} from '../entity/User';
 import {hash, compare} from 'bcrypt';
 import AppError from '../util/AppError';
+import {PasswordReset} from '../entity/PasswordReset';
+const crypto = require('crypto');
 
 
 const register = async (newUser) => {
@@ -34,6 +36,10 @@ const login = async ({
 }) => {
   const user = await findByUsername(username);
 
+  if (!user) {
+    throw new AppError(404, `User with ${username} not found`);
+  }
+
   if (!(await compare(password, user.password))) {
     throw new AppError(401, 'Incorrect Password');
   }
@@ -43,14 +49,14 @@ const login = async ({
 
 
 const findByUsername = async (username) => {
-  const user = await getRepository(User)
+  return getRepository(User)
       .findOne({username});
+};
 
-  if (!user) {
-    throw new AppError(404, `User with ${username} not found`);
-  }
 
-  return user;
+const findByMail = async (mail) => {
+  return getRepository(User)
+      .findOne({mail});
 };
 
 
@@ -58,10 +64,57 @@ const update = async () => {
 
 };
 
-const passwordReset = async () => {
 
+const sendResetToken = async (mail) => {
+  const user = await findByMail(mail);
+
+  function saveToken() {
+    const resetToken = crypto.randomBytes(64).toString('hex');
+    const expireDate = new Date(Date.now() + 1000 * 60 * 30);
+    return getRepository(PasswordReset)
+        .save({
+          mail,
+          resetToken,
+          expireDate,
+        });
+  }
+
+  if (user) {
+    await saveToken();
+    // todo token with mail
+  }
+};
+
+const resetPassword = async (resetToken, password) => {
+  const resetEntry = await getRepository(PasswordReset)
+      .findOne({resetToken});
+
+  const invalidUriError = new AppError(404, 'Invalid reset link. Please request a new password again.');
+
+  if (!resetEntry) {
+    throw invalidUriError;
+  }
+
+  async function removeResetToken() {
+    await getRepository(PasswordReset)
+        .delete(resetEntry.id);
+  }
+
+  if (resetEntry.expireDate < new Date()) {
+    await removeResetToken();
+    throw invalidUriError;
+  }
+
+  const userEntry = await findByMail(resetEntry.mail);
+  userEntry.password = await _generatePassword(password);
+  userEntry.updateDate = new Date();
+
+  await getRepository(User)
+      .save(userEntry);
+
+  await removeResetToken();
 };
 
 export {
-  register, login,
+  register, login, sendResetToken, resetPassword,
 };

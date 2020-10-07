@@ -11,7 +11,6 @@ const registerSchemaValidator = async (req, res, next) => {
 
     repeatPassword: Joi.ref('password'),
 
-
     mail: Joi.string()
         .required(),
 
@@ -20,13 +19,13 @@ const registerSchemaValidator = async (req, res, next) => {
 
     surname: Joi.string()
         .required(),
-
   });
 
   await schema.validateAsync(req.body);
 
   next();
 };
+
 
 export {
   registerSchemaValidator,

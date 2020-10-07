@@ -1,4 +1,4 @@
-import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, Index, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
 import {Portfolio} from './Portfolio';
 
 @Entity('user')
@@ -12,6 +12,7 @@ export class User {
   @Column()
   password: string;
 
+  @Index()
   @Column({unique: true})
   mail: string;
 

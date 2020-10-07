@@ -33,7 +33,15 @@ router.post('/logout',
 
 
 router.post('/reset', asyncMw(async (req, res, _) => {
+  const mail = req.body.mail;
+  await authService.sendResetToken(mail);
+  res.sendStatus(200);
+}));
 
+
+router.post('/reset/:resetToken', asyncMw(async (req, res, _) => {
+  await authService.resetPassword(req.params.resetToken, req.body.password);
+  res.sendStatus(200);
 }));
 
 export default router;

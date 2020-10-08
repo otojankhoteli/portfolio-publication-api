@@ -14,11 +14,13 @@ router.post('/register',
       res.sendStatus(200);
     }));
 
+
 router.post('/login',
     asyncMw(async (req, res, _) => {
       req.session.user = await authService.login(req.body);
       res.sendStatus(200);
     }));
+
 
 router.post('/logout',
     asyncMw(async (req, res, next) => {
@@ -28,6 +30,13 @@ router.post('/logout',
           next(err);
         }
       });
+      res.sendStatus(200);
+    }));
+
+
+router.post('/change-password',
+    asyncMw(async (req, res, _) => {
+      await authService.changePassword(req.session.user, req.body.oldPassword, req.body.newPassword);
       res.sendStatus(200);
     }));
 

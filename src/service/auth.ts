@@ -6,6 +6,9 @@ import {PasswordReset} from '../entity/PasswordReset';
 const crypto = require('crypto');
 
 
+const IncorrectCredentialsError = new AppError(401, 'Incorrect Credentials');
+
+
 const register = async (newUser) => {
   await _checkUser(newUser.username);
 
@@ -16,20 +19,6 @@ const register = async (newUser) => {
 };
 
 
-const _checkUser = async (username) => {
-  const user = await findByUsername(username);
-
-  if (user) {
-    throw new Error(`Username '${username}' is already taken. Try another one`);
-  }
-};
-
-
-const _generatePassword = async (plainTextPassword) => {
-  return hash(plainTextPassword, 10);
-};
-
-
 const login = async ({
   username,
   password,
@@ -37,14 +26,19 @@ const login = async ({
   const user = await findByUsername(username);
 
   if (!user) {
-    throw new AppError(404, `User with ${username} not found`);
+    throw IncorrectCredentialsError;
   }
 
-  if (!(await compare(password, user.password))) {
-    throw new AppError(401, 'Incorrect Password');
-  }
+  await _checkPasswordMatch(password, user.password);
 
-  return user;
+  return {
+    username: user.username,
+    password: user.password,
+    mail: user.mail,
+    name: user.name,
+    surname: user.surname,
+    imgUrl: user.imgUrl,
+  };
 };
 
 
@@ -60,8 +54,25 @@ const findByMail = async (mail) => {
 };
 
 
-const update = async () => {
+const update = async ({
+  username,
+  mail,
+  name,
+  surname,
+  imgUrl,
+}) => {
+  const user = await findByUsername(username);
 
+  if (user) {
+    user.mail = mail;
+    user.name = name;
+    user.surname = surname;
+    user.imgUrl = imgUrl;
+    user.updateDate = new Date();
+
+    return getRepository(User)
+        .save(user);
+  }
 };
 
 
@@ -81,9 +92,10 @@ const sendResetToken = async (mail) => {
 
   if (user) {
     await saveToken();
-    // todo token with mail
+    // todo send token to mail
   }
 };
+
 
 const resetPassword = async (resetToken, password) => {
   const resetEntry = await getRepository(PasswordReset)
@@ -95,26 +107,67 @@ const resetPassword = async (resetToken, password) => {
     throw invalidUriError;
   }
 
-  async function removeResetToken() {
-    await getRepository(PasswordReset)
-        .delete(resetEntry.id);
-  }
-
   if (resetEntry.expireDate < new Date()) {
-    await removeResetToken();
+    await _removeResetToken(resetEntry.id);
     throw invalidUriError;
   }
 
   const userEntry = await findByMail(resetEntry.mail);
-  userEntry.password = await _generatePassword(password);
-  userEntry.updateDate = new Date();
+  await _setPassword(userEntry, password);
 
-  await getRepository(User)
-      .save(userEntry);
-
-  await removeResetToken();
+  await _removeResetToken(resetEntry.id);
 };
 
+
+const changePassword = async (user, oldPassword, newPassword) => {
+  const resetEntry = await findByMail(user.mail);
+  if (resetEntry) {
+    await _removeResetToken(resetEntry.id);
+  }
+
+  const userEntry = await findByMail(resetEntry.mail);
+
+  await _checkPasswordMatch(oldPassword, userEntry.password);
+  await _setPassword(userEntry, newPassword);
+};
+
+
+const _setPassword = async (user, password) => {
+  user.password = await _generatePassword(password);
+  user.updateDate = new Date();
+
+  await getRepository(User)
+      .save(user);
+};
+
+
+const _checkUser = async (username) => {
+  const user = await findByUsername(username);
+
+  if (user) {
+    throw new AppError(409, `Username '${username}' is already taken. Try another one`);
+  }
+};
+
+
+const _checkPasswordMatch = async (plaintextPassword, hashedPassword) => {
+  if (!(await compare(plaintextPassword, hashedPassword))) {
+    throw IncorrectCredentialsError;
+  }
+};
+
+
+const _generatePassword = async (plainTextPassword) => {
+  return hash(plainTextPassword, 10);
+};
+
+
+const _removeResetToken = async (id) => {
+  await getRepository(PasswordReset)
+      .delete(id);
+};
+
+
 export {
-  register, login, sendResetToken, resetPassword,
+  register, login, sendResetToken, resetPassword, changePassword, update,
 };

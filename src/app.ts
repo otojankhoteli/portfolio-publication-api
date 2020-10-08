@@ -6,6 +6,8 @@ import {createConnection} from 'typeorm';
 import {dbConfig} from '../ormconfig';
 import logger from './util/Logger';
 import authRouter from './api/auth';
+import userRouter from './api/user';
+import fileRouter from './api/file';
 import errorHandler from './util/ErrorHandler';
 
 const startApp = async () => {
@@ -30,6 +32,8 @@ const startApp = async () => {
       res.send('pong');
     });
     app.use('/auth', authRouter);
+    app.use('/users', userRouter);
+    app.use('/files', fileRouter);
 
     app.use(errorHandler);
 

@@ -10,7 +10,8 @@ const IncorrectCredentialsError = new AppError(401, 'Incorrect Credentials');
 
 
 const register = async (newUser) => {
-  await _checkUser(newUser.username);
+  await _checkUsername(newUser.username);
+  await _checkMail(newUser.mail);
 
   newUser.password = await _generatePassword(newUser.password);
 
@@ -32,8 +33,8 @@ const login = async ({
   await _checkPasswordMatch(password, user.password);
 
   return {
+    id: user.id,
     username: user.username,
-    password: user.password,
     mail: user.mail,
     name: user.name,
     surname: user.surname,
@@ -141,11 +142,19 @@ const _setPassword = async (user, password) => {
 };
 
 
-const _checkUser = async (username) => {
+const _checkUsername = async (username) => {
   const user = await findByUsername(username);
 
   if (user) {
     throw new AppError(409, `Username '${username}' is already taken. Try another one`);
+  }
+};
+
+const _checkMail = async (mail) => {
+  const user = await findByMail(mail);
+
+  if (user) {
+    throw new AppError(409, `Mail '${mail}' is already taken. Try another one`);
   }
 };
 

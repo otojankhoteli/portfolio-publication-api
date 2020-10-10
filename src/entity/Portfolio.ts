@@ -1,4 +1,4 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {User} from './User';
 
 @Entity('portfolio')
@@ -6,15 +6,22 @@ export class Portfolio {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({name: 'img_url', nullable: true})
+  @Column({nullable: true})
   imgUrl: string;
 
-  @Column({name: 'create_date'})
+  @Column({type: 'jsonb'})
+  data: JSON;
+
+  @Column({name: 'create_date', default: () => 'current_timestamp'})
   createDate: Date;
 
-  @Column({name: 'update_date'})
+  @Column({name: 'update_date', default: () => 'current_timestamp'})
   updateDate: Date;
 
+  @Column()
+  user: number;
+
   @ManyToOne(() => User, (user) => user.portfolios)
-  user: User;
+  @JoinColumn({name: 'user', referencedColumnName: 'id'})
+  userValue: User;
 }

@@ -2,12 +2,24 @@ version: "3"
 
 
 services:
+  app:
+    container_name: portfolio-publication-api
+    build:
+      context: .
+    ports:
+      - 3000:3000
+    links:
+      - db
+    depends_on:
+      - db
+
   db:
     container_name: portfolio-db
     image: postgres
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
     volumes:
-    - ~/portfolio-service:/var/lib/postgresql/data
+      - ~/portfolio-service:/var/lib/postgresql/data
     ports:
       - 5432:5432
